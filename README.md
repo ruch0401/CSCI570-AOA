@@ -16,4 +16,4 @@
 - [HW10](HW10) - Linear Programming 1
 - [HW11](HW11) - Linear Programming 2
 - [HW12](HW12) - 
-- [Project](Final Project) - Sequence Alignment Problem (Dynamic Programming + Divide & Conquer)
+- [CSCI570FinalProject](Final Project) - Sequence Alignment Problem (Dynamic Programming + Divide & Conquer)
