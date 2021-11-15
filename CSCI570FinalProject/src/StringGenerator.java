@@ -12,6 +12,9 @@ public class StringGenerator {
     public static void main(String[] args) throws Exception {
         Input input = generateInput("input.txt");
         System.out.println(input);
+
+        System.out.println(generateInputString(input.firstString, input.indexes1));
+        System.out.println(generateInputString(input.secondString, input.indexes2));
     }
 
     private static List<String> fetchDataFromFile(String filename) {
@@ -25,7 +28,7 @@ public class StringGenerator {
         return data;
     }
 
-    private static Input generateInput(String filename) throws Exception {
+    private static Input generateInput(String filename) {
         List<String> data = fetchDataFromFile(filename);
         int blankStringIndex = data.indexOf("");
 
