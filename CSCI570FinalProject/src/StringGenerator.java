@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Files;
@@ -7,11 +8,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class StringGenerator {
+    public static final String BASE_PATH = "CSCI570FinalProject/resources";
     public static void main(String[] args) throws Exception {
-        // Reading data from the file
-        Path path = Paths.get("CSCI570FinalProject/resources/input.txt");
-        List<String> data = Files.readAllLines(path);
-        System.out.println(data);
+        Input input = generateInput("input.txt");
+        System.out.println(input);
+    }
+
+    private static List<String> fetchDataFromFile(String filename) {
+        Path path = Paths.get(String.format("%s/%s", BASE_PATH, filename));
+        List<String> data = null;
+        try {
+            data = Files.readAllLines(path);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return data;
+    }
+
+    private static Input generateInput(String filename) throws Exception {
+        List<String> data = fetchDataFromFile(filename);
         int blankStringIndex = data.indexOf("");
 
         // Creating input for the generateString() method
@@ -29,11 +44,8 @@ public class StringGenerator {
             indexes2.add(Integer.parseInt(data.get(i)));
         }
 
-        String finalString1 = generateInputString(firstBaseString, indexes1);
-        String finalString2 = generateInputString(secondBaseString, indexes2);
-        System.out.println(finalString1 + "\n" + finalString2);
+        return new Input(firstBaseString, secondBaseString, indexes1, indexes2);
     }
-
 
     /**
      * @param base is the string using which the final string will be created
