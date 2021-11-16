@@ -1,3 +1,8 @@
+0. Can we use external libraries and a project management tool to manage those libraries?
 1. Does the algorithm have to take gap penalty and mismatch cost necessarily as a parameter?
 2. Can we create a jar which can then run using a command with the required command line arguments?
-3.
+3. Time taken by the entire solution is the time required from code initialization to code end or the time required for the algorithm to complete?
+4. The comparison graph has to be created manually or the code should output this graph using some additional libraries?
+5. What do we have to dislay if the length of the final alignment is less than 100 (that is, the alignment cannot be divided into first 50 and last 50 characters), do we output the entire string as it is?
+6. Do we have to provide the similarity score?
+7.

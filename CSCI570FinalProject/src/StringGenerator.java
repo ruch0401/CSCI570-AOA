@@ -40,8 +40,8 @@ public class StringGenerator {
         System.out.println(a + "\n" + b);
 
         // Run Needleman and Wunsch Algorithm
-//        int similarity = stringGenerator.solveNeedlemanWunschAlgorithm("ATCGT", "TGGTC");
-        int similarity = stringGenerator.solveNeedlemanWunschAlgorithm(a, b);
+        int similarity = stringGenerator.solveNeedlemanWunschAlgorithm("ATCGT", "TGGTC");
+//        int similarity = stringGenerator.solveNeedlemanWunschAlgorithm(a, b);
         System.out.println(similarity);
     }
 
@@ -120,7 +120,7 @@ public class StringGenerator {
                 }
             }
         }
-        // print2DMatrix(dp);
+        print2DMatrix(dp);
         return Math.abs(dp[m][n]);
     }
 
