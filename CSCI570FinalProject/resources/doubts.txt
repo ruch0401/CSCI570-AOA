@@ -1,0 +1,3 @@
+1. Does the algorithm have to take gap penalty and mismatch cost necessarily as a parameter?
+2. Can we create a jar which can then run using a command with the required command line arguments?
+3.
