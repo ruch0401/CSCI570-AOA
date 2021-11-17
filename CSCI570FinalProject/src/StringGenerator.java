@@ -40,9 +40,9 @@ public class StringGenerator {
         System.out.println(a + "\n" + b);
 
         // Run Needleman and Wunsch Algorithm
-        int similarity = stringGenerator.solveNeedlemanWunschAlgorithm("ATCGT", "TGGTC");
-//        int similarity = stringGenerator.solveNeedlemanWunschAlgorithm(a, b);
-        System.out.println(similarity);
+//        Alignment alignment = stringGenerator.solveNeedlemanWunschAlgorithm("ATCGT", "TGGTC");
+        Alignment alignment = stringGenerator.solveNeedlemanWunschAlgorithm(a, b);
+        System.out.println(alignment);
     }
 
     private List<String> fetchDataFromFile(String filename) {
@@ -100,7 +100,7 @@ public class StringGenerator {
         }
     }
 
-    public int solveNeedlemanWunschAlgorithm(String a, String b) {
+    public Alignment solveNeedlemanWunschAlgorithm(String a, String b) {
         int m = a.length();
         int n = b.length();
         int[][] dp = new int[m + 1][n + 1];
@@ -120,8 +120,51 @@ public class StringGenerator {
                 }
             }
         }
-        print2DMatrix(dp);
-        return Math.abs(dp[m][n]);
+        return alignmentprintAlignment(a, b, dp);
+    }
+
+    private Alignment alignmentprintAlignment(String a, String b, int[][] dp) {
+        StringBuilder sb1 = new StringBuilder();
+        StringBuilder sb2 = new StringBuilder();
+
+        int i = a.length();
+        int j = b.length();
+        while (i != 0 && j != 0) {
+            int left = dp[i][j - 1] + GAP_PENALTY;
+            int top = dp[i - 1][j] + GAP_PENALTY;
+            int diagonal = dp[i - 1][j - 1] + getMismatchCost(a.charAt(i - 1), b.charAt(j - 1));
+            if (dp[i][j] == diagonal) {
+                sb1.append(a.charAt(i - 1));
+                sb2.append(b.charAt(j - 1));
+                i--;
+                j--;
+            } else if (dp[i][j] == left) {
+                sb1.append("_");
+                sb2.append(b.charAt(j - 1));
+                j--;
+            } else if (dp[i][j] == top) {
+                sb1.append(a.charAt(i - 1));
+                sb2.append("_");
+                i--;
+            }
+        }
+
+        while (i > 0) {
+            // append character of the string for which the index is changing to the corresponding stringbuilder
+            // in this case, i is changing, hence we append sb1 with string a's character at i
+            sb1.append(a.charAt(i - 1));
+            sb2.append("_");
+            i--;
+        }
+
+        while (j > 0) {
+            sb1.append("_");
+            // append character of the string for which the index is changing to the corresponding stringbuilder
+            // in this case, j is changing, hence we append sb2 with string b's character at j
+            sb2.append(b.charAt(j - 1));
+            j--;
+        }
+        return new Alignment(sb1.reverse().toString(), sb2.reverse().toString());
     }
 
     private int getMismatchCost(char c1, char c2) {
