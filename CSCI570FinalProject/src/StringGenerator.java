@@ -2,6 +2,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,9 +42,12 @@ public class StringGenerator {
         System.out.println(a + "\n" + b);
 
         // Run Needleman and Wunsch Algorithm
-//        Alignment alignment = stringGenerator.solveNeedlemanWunschAlgorithm("ATCGT", "TGGTC");
+        Instant startTime = Instant.now();
+        // Alignment alignment = stringGenerator.solveNeedlemanWunschAlgorithm("ATCGT", "TGGTC");
         Alignment alignment = stringGenerator.solveNeedlemanWunschAlgorithm(a, b);
+        Instant endTime = Instant.now();
         System.out.println(alignment);
+        System.out.printf("Time taken to execute the algorithm: %d ns%n", Duration.between(startTime, endTime).getNano());
     }
 
     private List<String> fetchDataFromFile(String filename) {
