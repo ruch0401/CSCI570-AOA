@@ -11,6 +11,7 @@ import java.util.Map;
 
 public class StringGenerator {
     public static final String BASE_PATH = "CSCI570FinalProject/resources";
+    public static final String FILE_NAME = "input.txt";
     public static final int[][] MISMATCH_COST =
             {
                     {0, 110, 48, 94},
@@ -32,7 +33,7 @@ public class StringGenerator {
 
     public static void main(String[] args) throws Exception {
         StringGenerator stringGenerator = new StringGenerator();
-        Input input = stringGenerator.generateInput("input.txt");
+        Input input = stringGenerator.generateInput(FILE_NAME);
         System.out.println(input);
 
         String a = stringGenerator.generateInputString(input.firstString, input.indexes1);
