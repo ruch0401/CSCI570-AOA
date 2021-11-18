@@ -4,10 +4,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class StringGenerator {
     public static final String BASE_PATH = "CSCI570FinalProject/resources";
@@ -43,12 +40,16 @@ public class StringGenerator {
         System.out.println(a + "\n" + b);
 
         // Run Needleman and Wunsch Algorithm
-        Instant startTime = Instant.now();
-        // Alignment alignment = stringGenerator.solveNeedlemanWunschAlgorithm("ATCGT", "TGGTC");
-        Alignment alignment = stringGenerator.solveNeedlemanWunschAlgorithm(a, b);
-        Instant endTime = Instant.now();
-        System.out.println(alignment);
-        System.out.printf("Time taken to execute the algorithm: %d ns%n", Duration.between(startTime, endTime).getNano());
+//        Instant startTime = Instant.now();
+//         Alignment alignment = stringGenerator.optimalAlignment("ATCGT", "TGGTC");
+//        Alignment alignment = stringGenerator.optimalAlignment(a, b);
+//        Instant endTime = Instant.now();
+//        System.out.println(alignment);
+//        System.out.printf("Time taken to execute the algorithm: %d ns%n", Duration.between(startTime, endTime).getNano());
+
+
+        // testing out spaced efficient version to find scoring value
+        System.out.println(stringGenerator.spaceEfficientAlignment("ATCGT", "TGGTC"));
     }
 
     private List<String> fetchDataFromFile(String filename) {
@@ -106,7 +107,7 @@ public class StringGenerator {
         }
     }
 
-    public Alignment solveNeedlemanWunschAlgorithm(String a, String b) {
+    public Alignment optimalAlignment(String a, String b) {
         int m = a.length();
         int n = b.length();
         int[][] dp = new int[m + 1][n + 1];
@@ -126,10 +127,11 @@ public class StringGenerator {
                 }
             }
         }
-        return alignmentprintAlignment(a, b, dp);
+        print2DMatrix(dp);
+        return printAlignment(a, b, dp);
     }
 
-    private Alignment alignmentprintAlignment(String a, String b, int[][] dp) {
+    private Alignment printAlignment(String a, String b, int[][] dp) {
         StringBuilder sb1 = new StringBuilder();
         StringBuilder sb2 = new StringBuilder();
 
@@ -145,7 +147,7 @@ public class StringGenerator {
                 i--;
                 j--;
             } else if (dp[i][j] == left) {
-                sb1.append("_");
+                 sb1.append("_");
                 sb2.append(b.charAt(j - 1));
                 j--;
             } else if (dp[i][j] == top) {
@@ -173,9 +175,56 @@ public class StringGenerator {
         return new Alignment(sb1.reverse().toString(), sb2.reverse().toString());
     }
 
+    private int spaceEfficientAlignment(String a, String b) {
+        // first, I need to determine which string is small or big to decide the length of the evenEdits and oddEdits that we are going to create
+        String big = a.length() < b.length() ? b : a;
+        String small = a.length() >= b.length() ? b : a;
+
+        // creating 2 arrays - evenEdits and oddEdits that will store my currentArray and previousArray
+        int[] evenEdits = new int[small.length() + 1];
+        int[] oddEdits = new int[small.length() + 1];
+
+        // Initializing the evenEdits array because we will always start from index 0 which is even
+        for (int j = 0; j < small.length() + 1; j++) {
+            evenEdits[j] = j * GAP_PENALTY;
+        }
+
+        // Initialize 2 arrays, currentEdits and previousEdits which will store our DP calculations
+        int[] currentEdits;
+        int[] previousEdits;
+
+        // check which (from oddEdits and evenEdits) is the currentEdit and which one is the other
+        // we traverse the while loop till big.length() because now we need to traverse the bigger string.
+        // refer to the dp[][] array in Solution1 to draw parallels
+        for (int i = 1; i < big.length() + 1; i++) {
+            if (i % 2 == 0) {
+                currentEdits = evenEdits;
+                previousEdits = oddEdits;
+            } else {
+                currentEdits = oddEdits;
+                previousEdits = evenEdits;
+            }
+
+            // this is same as initializing the dp[][] array's first column
+            currentEdits[0] = i * GAP_PENALTY;
+
+            for (int j = 1; j < small.length() + 1; j++) {
+                int left = currentEdits[j - 1] + GAP_PENALTY;
+                int top = previousEdits[j] + GAP_PENALTY;
+                int diagonal = previousEdits[j - 1] + getMismatchCost(a.charAt(i - 1), b.charAt(j - 1));
+                currentEdits[j] = Math.min(diagonal, Math.min(left, top));
+                System.out.println(Arrays.toString(currentEdits));
+            }
+        }
+        // depending on the length of the bigger string (which spans across the rows in the dp[][] arrray)
+        // the answer might be stored in either the evenEdits[] or the oddEdits[] array
+        return (big.length() % 2 == 0) ? evenEdits[small.length()] : oddEdits[small.length()];
+    }
+
     private int getMismatchCost(char c1, char c2) {
         int i = hm.get(c1);
         int j = hm.get(c2);
+        System.out.println(String.format("Checking mismatch for[%s, %s]. Mismatch value found: %d", c1, c2, MISMATCH_COST[i][j]));
         return MISMATCH_COST[i][j];
     }
 
