@@ -1,4 +1,10 @@
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class StringGenerator2 {
     public static final int[][] MISMATCH_COST =
@@ -10,9 +16,8 @@ public class StringGenerator2 {
             };
     public static final int GAP_PENALTY = 30;
     public static Map<Character, Integer> hm = new HashMap<>();
-
-    static String a = "AGTACGCA";
-    static String b = "TATGC";
+    public static String BASE_PATH;
+    private final static Logger LOGGER = Logger.getLogger(StringGenerator2.class.getName());
 
     static class Pair {
         String a;
@@ -22,8 +27,6 @@ public class StringGenerator2 {
             this.a = a;
             this.b = b;
         }
-
-        public Pair() {}
 
         public Pair add(Pair pair) {
             return new Pair(this.a + pair.a, this.b + pair.b);
@@ -35,10 +38,74 @@ public class StringGenerator2 {
         }
     }
 
+    private static void InitializeLogger() {
+        LOGGER.setLevel(Level.INFO);
+    }
 
     public static void main(String[] args) {
+        InitializeLogger();
+
+        List<String> argsList = Arrays.asList(args);
+        LOGGER.log(Level.INFO, String.valueOf(argsList));
+        BASE_PATH = argsList.get(argsList.indexOf("-basePath") + 1);
+        final String FILENAME = argsList.get(argsList.indexOf("-filename") + 1);
+
         MapCytokynesToIndices();
-        System.out.println(Hirschberg(a, b));
+        Pair inputStrings = GenerateInputStringsFromFiles(FILENAME);
+        Pair alignment = Hirschberg(inputStrings.a, inputStrings.b);
+        System.out.println(alignment);
+    }
+
+    private static Pair GenerateInputStringsFromFiles(String filename) {
+        List<String> data = fetchDataFromFile(filename);
+        Input input = fetchInputComponents(data);
+        String a = fetchInputStrings(input.firstString, input.indexes1);
+        String b = fetchInputStrings(input.secondString, input.indexes2);
+        return new Pair(a, b);
+    }
+
+    private static String fetchInputStrings(String base, List<Integer> indexes) {
+        int lengthSupposedToBe = (int) (Math.pow(2, indexes.size())) * base.length();
+        StringBuilder sb = null;
+        for (int index : indexes) {
+            sb = new StringBuilder(base);
+            base = sb.insert(index + 1, sb.toString().toCharArray(), 0, sb.toString().length()).toString();
+        }
+        assert sb != null;
+        int generatedStringLength = sb.toString().length();
+        try {
+            if (generatedStringLength == lengthSupposedToBe) return sb.toString();
+        } catch (Exception exception) {
+            LOGGER.log(Level.SEVERE, "Actual and calculated length of the string do not match");
+            System.exit(1);
+        }
+        return null;
+    }
+
+    private static Input fetchInputComponents(List<String> data) {
+        int blankStringIndex = data.indexOf("");
+        String firstBaseString = data.get(0);
+        String secondBaseString = data.get(blankStringIndex + 1);
+        List<Integer> indexes1 = new ArrayList<>();
+        List<Integer> indexes2 = new ArrayList<>();
+        for (int i = 1; i < blankStringIndex; i++) {
+            indexes1.add(Integer.parseInt(data.get(i)));
+        }
+        for (int i = blankStringIndex + 2; i < data.size(); i++) {
+            indexes2.add(Integer.parseInt(data.get(i)));
+        }
+        return new Input(firstBaseString, secondBaseString, indexes1, indexes2);
+    }
+
+    private static List<String> fetchDataFromFile(String filename) {
+        Path path = Paths.get(BASE_PATH, filename);
+        List<String> data = null;
+        try {
+            data = Files.readAllLines(path);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return data;
     }
 
     private static void MapCytokynesToIndices() {
@@ -49,38 +116,38 @@ public class StringGenerator2 {
     }
 
     private static Pair Hirschberg(String a, String b) {
-        Pair ans = new Pair();
+        LOGGER.log(Level.INFO, String.format("Recursing for: [%s, %s]", a, b));
         StringBuilder a1 = new StringBuilder();
         StringBuilder b1 = new StringBuilder();
-
+        Pair ans = null;
         if (a.length() == 0) {
             for (int i = 0; i < b.length(); i++) {
                 a1.append("_");
                 b1.append(b.charAt(i));
+                ans = new Pair(a1.toString(), b1.toString());
             }
         } else if (b.length() == 0) {
             for (int i = 0; i < a.length(); i++) {
                 a1.append(a.charAt(i));
                 b1.append("_");
+                ans = new Pair(a1.toString(), b1.toString());
             }
         } else if (a.length() == 1 || b.length() == 1) {
             ans = NeedlemanWunsch(a, b);
         } else {
             int alen = a.length();
+            int amid = a.length() / 2;
             int blen = b.length();
-            int bmid = b.length() / 2;
 
-            List<Integer> scoreL = NWScore(a, b.substring(0, bmid));
-            String aRev = new StringBuilder(a).reverse().toString();
-            String bRev = new StringBuilder(b.substring(bmid + 1, blen)).reverse().toString();
+            List<Integer> scoreL = NWScore(a.substring(0, amid), b);
+            String aRev = new StringBuilder(a.substring(amid + 1, alen)).reverse().toString();
+            String bRev = new StringBuilder(b).reverse().toString();
             List<Integer> scoreR = NWScore(aRev, bRev);
-            System.out.println(scoreL + "\n" + scoreR);
             Collections.reverse(scoreR);
-            int amid = getMin(scoreL, scoreR);
+            int bmid = getMin(scoreL, scoreR);
 
             Pair p1 = Hirschberg(a.substring(0, amid), b.substring(0, bmid));
-            Pair p2 = Hirschberg(a.substring(amid + 1, alen), b.substring(bmid + 1, blen));
-            System.out.println(a1 + "\n" + b1);
+            Pair p2 = Hirschberg(a.substring(amid, alen), b.substring(bmid, blen));
             ans = p1.add(p2);
         }
         return ans;
@@ -89,7 +156,7 @@ public class StringGenerator2 {
     private static int getMin(List<Integer> a, List<Integer> b) {
         int min = Integer.MAX_VALUE;
         List<Integer> ans = new ArrayList<>();
-        for (int i = 0; i < b.size(); i++) {
+        for (int i = 0; i < a.size(); i++) {
             int sum = a.get(i) + b.get(i);
             ans.add(sum);
             min = Math.min(min, sum);
@@ -175,7 +242,7 @@ public class StringGenerator2 {
                 }
             }
         }
-        print2DMatrix(dp);
+//        print2DMatrix(dp);
         return printAlignment(a, b, dp);
     }
 
@@ -220,7 +287,9 @@ public class StringGenerator2 {
             sb2.append(b.charAt(j - 1));
             j--;
         }
-        return new Pair(sb1.reverse().toString(), sb2.reverse().toString());
+        String s1 = sb1.reverse().toString();
+        String s2 = sb2.reverse().toString();
+        return new Pair(s1, s2);
     }
 
     private static void print2DMatrix(int[][] dp) {
