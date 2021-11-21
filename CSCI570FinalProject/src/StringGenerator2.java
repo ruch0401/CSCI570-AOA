@@ -52,7 +52,7 @@ public class StringGenerator2 {
 
         MapCytokynesToIndices();
         Pair inputStrings = GenerateInputStringsFromFiles(FILENAME);
-        Pair alignment = Hirschberg(inputStrings.a, inputStrings.b);
+        Pair alignment = DivideAndConquerSequenceAlignment(inputStrings.a, inputStrings.b);
         System.out.println(alignment);
     }
 
@@ -115,7 +115,7 @@ public class StringGenerator2 {
         hm.put('T', 3);
     }
 
-    private static Pair Hirschberg(String a, String b) {
+    private static Pair DivideAndConquerSequenceAlignment(String a, String b) {
         LOGGER.log(Level.INFO, String.format("Recursing for: [%s, %s]", a, b));
         StringBuilder a1 = new StringBuilder();
         StringBuilder b1 = new StringBuilder();
@@ -146,8 +146,8 @@ public class StringGenerator2 {
             Collections.reverse(scoreR);
             int bmid = getMin(scoreL, scoreR);
 
-            Pair p1 = Hirschberg(a.substring(0, amid), b.substring(0, bmid));
-            Pair p2 = Hirschberg(a.substring(amid, alen), b.substring(bmid, blen));
+            Pair p1 = DivideAndConquerSequenceAlignment(a.substring(0, amid), b.substring(0, bmid));
+            Pair p2 = DivideAndConquerSequenceAlignment(a.substring(amid, alen), b.substring(bmid, blen));
             ans = p1.add(p2);
         }
         return ans;
