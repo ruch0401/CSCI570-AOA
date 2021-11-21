@@ -15,10 +15,16 @@ public class StringGenerator2 {
                     {94, 48, 110, 0}
             };
     public static final int GAP_PENALTY = 30;
+
     public static Map<Character, Integer> hm = new HashMap<>();
+
     public static String BASE_PATH;
     private final static Logger LOGGER = Logger.getLogger(StringGenerator2.class.getName());
-    private static List<String> argsList;
+
+    private static boolean isCustomEnabled;
+    private static boolean isSpaceOptimizationEnabled;
+    private static boolean isPrinting2DMatrixEnabled;
+    private static boolean isDivideAndConquerEnabled;
 
     static class Pair {
         String a;
@@ -40,18 +46,21 @@ public class StringGenerator2 {
     }
 
     private static void InitializeLogger() {
-        LOGGER.setLevel(Level.ALL);
+        LOGGER.setLevel(Level.INFO);
     }
 
     public static void main(String[] args) {
         InitializeLogger();
-        MapCytokynesToIndices();
-
-        argsList = Arrays.asList(args);
+        List<String> argsList = Arrays.asList(args);
         LOGGER.log(Level.INFO, String.valueOf(argsList));
+        SetFlags(argsList);
+        MapCytokynesToIndices();
+        Execute(argsList);
+    }
 
+    private static void Execute(List<String> argsList) {
         Pair inputStrings;
-        if (argsList.get(argsList.indexOf("-custom") + 1).equalsIgnoreCase("true")) {
+        if (isCustomEnabled) {
             LOGGER.log(Level.INFO, "Custom strings provided, skipping input creation from file");
             String a = argsList.get(argsList.indexOf("-firstString") + 1);
             String b = argsList.get(argsList.indexOf("-secondString") + 1);
@@ -64,12 +73,32 @@ public class StringGenerator2 {
         }
 
         Pair alignment;
-        if (argsList.get(argsList.indexOf("-spaceOptimized") + 1).equalsIgnoreCase("true")) {
+        if (isSpaceOptimizationEnabled) {
             alignment = DivideAndConquerSequenceAlignment(inputStrings.a, inputStrings.b);
         } else {
             alignment = NeedlemanWunsch(inputStrings.a, inputStrings.b);
         }
         System.out.println(alignment);
+    }
+
+    private static void SetFlags(List<String> argsList) {
+        isCustomEnabled = argsList.get(argsList.indexOf("-isCustomEnabled") + 1).equalsIgnoreCase("true");
+        isSpaceOptimizationEnabled = argsList.get(argsList.indexOf("-isSpaceOptimizationEnabled") + 1).equalsIgnoreCase("true");
+        isPrinting2DMatrixEnabled = argsList.get(argsList.indexOf("-isPrinting2DMatrixEnabled") + 1).equalsIgnoreCase("true");
+        isDivideAndConquerEnabled = argsList.get(argsList.indexOf("-isDivideAndConquerEnabled") + 1).equalsIgnoreCase("true");
+        logLimitationsAndExit();
+    }
+
+    private static void logLimitationsAndExit() {
+        if (isDivideAndConquerEnabled && !isSpaceOptimizationEnabled) {
+            LOGGER.log(Level.SEVERE, "Divide and Conquer + DP can only run with Space Optimized enabled. Please set isSpaceOptimizationEnabled = true");
+            System.exit(1);
+        }
+
+        if (isPrinting2DMatrixEnabled && isSpaceOptimizationEnabled) {
+            LOGGER.log(Level.SEVERE, "2D DP Matrix cannot be printed if Space Optimization is enabled. Please set isPrinting2DMatrixEnabled = false");
+            System.exit(1);
+        }
     }
 
     private static Pair GenerateInputStringsFromFiles(String filename) {
@@ -220,11 +249,11 @@ public class StringGenerator2 {
         // the answer might be stored in either the evenEdits[] or the oddEdits[] array
         List<Integer> evenList = new ArrayList<>();
         List<Integer> oddList = new ArrayList<>();
-        for (int elem: evenEdits) {
+        for (int elem : evenEdits) {
             evenList.add(elem);
         }
 
-        for (int elem: oddEdits) {
+        for (int elem : oddEdits) {
             oddList.add(elem);
         }
 
@@ -258,14 +287,9 @@ public class StringGenerator2 {
                 }
             }
         }
-        if (argsList.get(argsList.indexOf("-printDPMatrix") + 1).equalsIgnoreCase("true")) {
-            if (!argsList.get(argsList.indexOf("-spaceOptimized") + 1).equalsIgnoreCase("true")) {
-                LOGGER.log(Level.INFO, "Printing DP Matrix enabled. Printing...\n");
-                print2DMatrix(dp);
-            } else {
-                LOGGER.log(Level.WARNING, "DP Matrix cannot be printed when space optimization is enabled");
-            }
-
+        if (isPrinting2DMatrixEnabled) {
+            LOGGER.log(Level.INFO, "Printing DP Matrix enabled. Printing...");
+            print2DMatrix(dp);
         }
         return printAlignment(a, b, dp);
     }
