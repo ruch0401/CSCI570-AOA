@@ -18,6 +18,7 @@ public class StringGenerator2 {
     public static Map<Character, Integer> hm = new HashMap<>();
     public static String BASE_PATH;
     private final static Logger LOGGER = Logger.getLogger(StringGenerator2.class.getName());
+    private static List<String> argsList;
 
     static class Pair {
         String a;
@@ -39,20 +40,35 @@ public class StringGenerator2 {
     }
 
     private static void InitializeLogger() {
-        LOGGER.setLevel(Level.INFO);
+        LOGGER.setLevel(Level.ALL);
     }
 
     public static void main(String[] args) {
         InitializeLogger();
-
-        List<String> argsList = Arrays.asList(args);
-        LOGGER.log(Level.INFO, String.valueOf(argsList));
-        BASE_PATH = argsList.get(argsList.indexOf("-basePath") + 1);
-        final String FILENAME = argsList.get(argsList.indexOf("-filename") + 1);
-
         MapCytokynesToIndices();
-        Pair inputStrings = GenerateInputStringsFromFiles(FILENAME);
-        Pair alignment = DivideAndConquerSequenceAlignment(inputStrings.a, inputStrings.b);
+
+        argsList = Arrays.asList(args);
+        LOGGER.log(Level.INFO, String.valueOf(argsList));
+
+        Pair inputStrings;
+        if (argsList.get(argsList.indexOf("-custom") + 1).equalsIgnoreCase("true")) {
+            LOGGER.log(Level.INFO, "Custom strings provided, skipping input creation from file");
+            String a = argsList.get(argsList.indexOf("-firstString") + 1);
+            String b = argsList.get(argsList.indexOf("-secondString") + 1);
+            inputStrings = new Pair(a, b);
+        } else {
+            BASE_PATH = argsList.get(argsList.indexOf("-basePath") + 1);
+            final String FILENAME = argsList.get(argsList.indexOf("-filename") + 1);
+            LOGGER.log(Level.INFO, String.format("Generating input strings from file [%s] present at location [%s]", FILENAME, BASE_PATH));
+            inputStrings = GenerateInputStringsFromFiles(FILENAME);
+        }
+
+        Pair alignment;
+        if (argsList.get(argsList.indexOf("-spaceOptimized") + 1).equalsIgnoreCase("true")) {
+            alignment = DivideAndConquerSequenceAlignment(inputStrings.a, inputStrings.b);
+        } else {
+            alignment = NeedlemanWunsch(inputStrings.a, inputStrings.b);
+        }
         System.out.println(alignment);
     }
 
@@ -242,7 +258,15 @@ public class StringGenerator2 {
                 }
             }
         }
-//        print2DMatrix(dp);
+        if (argsList.get(argsList.indexOf("-printDPMatrix") + 1).equalsIgnoreCase("true")) {
+            if (!argsList.get(argsList.indexOf("-spaceOptimized") + 1).equalsIgnoreCase("true")) {
+                LOGGER.log(Level.INFO, "Printing DP Matrix enabled. Printing...\n");
+                print2DMatrix(dp);
+            } else {
+                LOGGER.log(Level.WARNING, "DP Matrix cannot be printed when space optimization is enabled");
+            }
+
+        }
         return printAlignment(a, b, dp);
     }
 
@@ -293,6 +317,7 @@ public class StringGenerator2 {
     }
 
     private static void print2DMatrix(int[][] dp) {
+        System.out.println("DP Matrix: ");
         for (int[] ints : dp) {
             for (int j = 0; j < dp[0].length; j++) {
                 System.out.print(ints[j] + "\t");
