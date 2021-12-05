@@ -1,5 +1,3 @@
-# CSCI570-AOA
-
 # University of Southern California
 ## CSCI - 570 (Analysis of Algorithms)
 ## HW Solutions
