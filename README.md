@@ -17,4 +17,4 @@
 - [HW11](HW11) - Complexity Classification + Linear Programming
 - [HW12](HW12) - Approximation Algorithms + Linear Programming
 - [Books](Books) - Recommended Books for CSCI-570 course
-- [Exam Material](Exam Material) - Lecture Nodes, Discussions, HWs, Exam Review Slides, Previous Year Question Papers
+- [Exam Material]('Exam Material') - Lecture Nodes, Discussions, HWs, Exam Review Slides, Previous Year Question Papers
